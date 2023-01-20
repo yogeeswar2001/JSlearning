@@ -1,0 +1,12 @@
+input[type="button"] {
+    width: 100%;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 20px 40px;
+}
+
+input[type="text"] {
+    font-size: 20px;
+    font-weight: bold;
+    padding: 20px 20px;
+}
