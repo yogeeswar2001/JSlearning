@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js" integrity="sha512-2AL/VEauKkZqQU9BHgnv48OhXcJPx9vdzxN1JrKDVc4FPU/MEE/BZ6d9l0mP7VmvLsjtYwqiYQpDskK9dG8KBA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+</head>
+<body>
+    <input type="text" class="type" data-bind="value: firstName">
+    <input type="text" class="type" data-bind="value: lastName">
+
+    <hr>
+
+    First Name : <span data-bind="text:firstName"></span> <br>
+    Last Name: <span data-bind="text:lastName"></span> <br>
+    Full Name: <span data-bind="text: fullName"></span>
+
+    <script>
+        var personViewModel =function(firstName, lastName) {
+            this.firstName = ko.observable(firstName);
+            this.lastName = ko.observable(lastName);
+            this.fullName = ko.computed(function () {
+                return this.firstName() + ' ' + this.lastName();
+            }, this);
+        }
+
+        var person1 = new personViewModel('firstname', 'lastname');
+        ko.applyBindings(person1);
+    </script>
+</body>
+</html>

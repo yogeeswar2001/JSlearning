@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" contendt="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js" integrity="sha512-2AL/VEauKkZqQU9BHgnv48OhXcJPx9vdzxN1JrKDVc4FPU/MEE/BZ6d9l0mP7VmvLsjtYwqiYQpDskK9dG8KBA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        table, th, td {
+            border: 1px solid;
+        }
+        .highlightBg {
+            background-color: green;
+        }
+    </style>
+
+</head>
+<body>
+    <h3>Accounts</h3>
+    Account Name: <select id="accountLists" data-bind="options: Accounts, optionsText: 'name', optionsValue: 'id'"></select> <br>
+    Number Of Accounts: <span data-bind="text: Accounts().length"></span> <br>
+    Highest Balance: <span data-bind="text: highestBal"></span> <br>
+    Total Balance: <span data-bind="text: totalSum"></span> <br>
+
+    <br><br>
+
+    Account ID:   <input type="text" name="newAccID" id="newAccID"> <br>
+    Account Name: <input type="text" name="newAccName" id="newAccName"> <br>
+    Account Balance: <input type="text" name="newAccbalance" id="newAccBalance"> <br><br>
+    <input type="button" value="Create Account" id="createAccBtn">
+    <br><br>
+    
+    <input type="button" id="showAllAccBtn" value="Show All Accounts">
+    <input type="button" value="Collapse All" id="collapseBtn">
+    <br><br>
+    <div data-bind="template: {name:'accountsTable-template', if: showAllAcc}"></div>
+
+    <script type="text/html" id="accountsTable-template">
+        <table>
+            <thead>
+                <th>S. No</th>
+                <th>Account ID</th>
+                <th>Account Name</th>
+                <th>Account Balance</th>
+                <th>Transactions</th>
+            </thead>
+            <tbody data-bind="foreach: Accounts">
+                <tr data-bind="click: function () {$parent.selectAccount(id)}, css: {highlightBg: $index() == $parent.selectedIndex()}">
+                    <td data-bind="text: $index"></td>
+                    <td data-bind="text: id"></td>
+                    <td data-bind="text: name"></td>
+                    <td data-bind="text: balance"></td>
+                    <td>
+                        <ul data-bind="foreach: transactions">
+                            <li data-bind="component: {name:'transaction-component', params:{accountName: $parent.name, amount: $data}}"></li>
+                        </ul>
+                    </td>
+                    <td><input type="button" value="Select" data-bind="click: function() {$parent.selectAccount(id)}, clickBubble:false"></td>
+                </tr>
+            </tbody>
+        </table>
+    </script>
+
+    <hr>     
+    <h3>Account Details</h3>
+    <b>Account ID: </b> <span data-bind="text: Accounts()[selectedIndex()].id"></span> <br>
+    <b>Account Name: </b> <span data-bind="text: Accounts()[selectedIndex()].name"></span> <br>
+    <b>Balance: </b> <span data-bind="text: Accounts()[selectedIndex()].balance"></span> <br>
+    <hr>
+
+    <h3>Transactions</h3>
+    <table>
+        <tr>
+            <td><b>Deposit: </b></td>
+            <td><input type="text" name="depositAmount" id="depositAmt"></td>
+            <td><input type="button" value="Deposit" id="depositAmtBtn" ></td>
+        </tr>
+        <tr>
+            <td><b>Withdraw: </b></td>
+            <td><input type="text" name="withdrawAmount" id="withdrawAmt"></td>
+            <td><input type="button" value="Withdraw" id="withdrawAmtBtn"></td>
+        </tr>
+    </table>
+
+    <script>
+        //load event listners
+        document.querySelector('#accountLists').addEventListener('change', function() {
+            const index = Number(document.getElementById('accountLists').selectedIndex);
+            accountViewModel.selectedIndex(index);
+        });
+
+        document.querySelector('#createAccBtn').addEventListener('click', function() {
+            const id = document.querySelector('#newAccID').value;
+            const name = document.querySelector('#newAccName').value;
+            const balance = document.querySelector('#newAccBalance').value;
+
+            accountViewModel.Accounts.push(new Account(Number(id), name, Number(balance)));
+        });
+
+        document.querySelector('#showAllAccBtn').addEventListener('click', function() {
+            accountViewModel.showAllAcc(true);
+        });
+
+        document.querySelector('#collapseBtn').addEventListener('click', function() {
+            accountViewModel.showAllAcc(false);
+        });
+
+        document.querySelector('#depositAmtBtn').addEventListener('click', function() {
+            const amt = document.getElementById('depositAmt').value;
+
+            accountViewModel.Accounts()[accountViewModel.selectedIndex()].balance(accountViewModel.Accounts()[accountViewModel.selectedIndex()].balance() + Number(amt));
+
+            let trans = accountViewModel.Accounts()[accountViewModel.selectedIndex()].transactions();
+            trans.push(Number(amt));
+            accountViewModel.Accounts()[accountViewModel.selectedIndex()].transactions(trans);
+        });
+
+        document.querySelector('#withdrawAmtBtn').addEventListener('click', function() {
+            const amt = document.getElementById('withdrawAmt').value;
+
+            accountViewModel.Accounts()[accountViewModel.selectedIndex()].balance(accountViewModel.Accounts()[accountViewModel.selectedIndex()].balance() - Number(amt));
+
+            let trans = accountViewModel.Accounts()[accountViewModel.selectedIndex()].transactions();
+            trans.push(Number(amt)*(-1));
+            accountViewModel.Accounts()[accountViewModel.selectedIndex()].transactions(trans);
+        });
+    </script>
+
+    <script>
+        let Account = function(id, name, balance, transactions) {
+            this.id = id;
+            this.name = name;
+            this.balance = ko.observable(balance);
+            this.transactions = ko.observableArray(transactions);
+        }
+
+        let AccountViewModel = function() {
+            const self = this;
+            
+            let ids = [];
+            
+            let acc1 = new Account(1, 'A1', 10000, [100, -50, 200]);
+            let acc2 = new Account(2, 'A2', 23000, [200, -50, 400]);
+            let acc3 = new Account(3, 'A3', 5000, [150, -60, 200]);
+            let acc4 = new Account(4, 'A4', 900000, [100, -50, -100]);
+
+            this.Accounts = ko.observableArray([acc1, acc2, acc3, acc4]);
+            this.selectedIndex = ko.observable(0);
+            this.selectAccount = ko.observable(this.Accounts()[0]);
+            this.showAllAcc = ko.observable(false);
+
+            this.highestBal = ko.computed(() => {
+                let accBals = this.Accounts().map((acc) => acc.balance())
+                return Math.max(...accBals);
+            },this);
+
+            this.totalSum = ko.computed(() => {
+                let sum = 0;
+                this.Accounts().forEach(acc => sum += acc.balance());
+                return sum;
+            }, this);
+
+            this.computeIDs = ko.computed(() => {
+                this.ids = this.Accounts().map(acc => acc.id);
+            }, this);
+
+            this.selectAccount = function(id) {
+                self.selectedIndex(self.ids.indexOf(id));
+            }
+        }
+
+        function transactionsViewModel(params) {
+            this.accountName = ko.observable(params.accountName);
+            this.amount = ko.observable(params.amount);
+        }
+
+        ko.components.register('transaction-component', {
+            viewModel: transactionsViewModel,
+            template: `<span data-bind="text: amount()<0?'withdraw':'deposit'"></span> <span data-bind='text:amount'></span> `
+        });
+
+        const accountViewModel = new AccountViewModel();
+        ko.applyBindings(accountViewModel);
+
+    </script>
+</body>
+</html>
